@@ -14,7 +14,7 @@ from tenacity import retry, wait_exponential
 load_dotenv(override= True)
 
 # Constants:
-MODEL = 'llama3.1:8b'
+MODEL = 'ollama/llama3.1:8b'
 DB_NAME = str(Path(__file__).parent.parent / 'preprocessed_db')
 collection_name = 'docs'
 embedding_model = 'text-embedding-3-large'
@@ -83,7 +83,7 @@ def fetch_document():
     print(f'Found {len(documents)} documents')
     return documents
 
-@retry(wait= wait)
+#@retry(wait= wait)
 def process_document(document):
     """
     Takes a single Markdown document, splits it using LangChain,
@@ -166,3 +166,35 @@ def process_document(document):
         result = llm_chunk.as_result(original_text= split.page_content, source_metadata= split.metadata)
 
         final_results.append(result)
+
+    return final_results
+
+if __name__ == '__main__':
+    print('Fetching documents...')
+    documents = fetch_document()
+
+    if not documents:
+        print('No documents found.')
+    else:
+        test_doc = documents[0]
+        print(f"Testing with document: {test_doc['source']}")
+
+        try:
+            results = process_document(test_doc)
+            print(f'\nSuccess! Generated {len(results)} chunks from this document.')
+            if results:
+                print("\n" + "=" * 50)
+                print("🔍 INSPECTING THE FIRST CHUNK:")
+                print("=" * 50)
+
+                first_result = results[0]
+                print(f"\n📍 METADATA (Notice the LangChain headers!):")
+                print(first_result.metadata)
+
+                print(f"\n📝 PAGE CONTENT (Headline -> Summary -> Original Text):")
+                print("-" * 40)
+                print(first_result.page_content)
+                print("-" * 40)
+
+        except Exception as e:
+            print(f"\n❌ Pipeline failed during testing: {e}")
