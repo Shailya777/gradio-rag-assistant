@@ -15,7 +15,7 @@ MODEL = 'llama3.1:8b'
 DB_NAME = str(Path(__file__).parent.parent / 'preprocessed_db')
 collection_name = 'docs'
 embedding_model = 'text-embedding-3-large'
-KNOWLEDGE_BASE_PATH = Path(__file__).parent.parent / 'knowledge_base'
+KNOWLEDGE_BASE_PATH = Path(__file__).parent.parent / 'Knowledge-Base'
 wait = wait_exponential(multiplier= 1, min= 10, max= 240)
 
 
@@ -66,3 +66,16 @@ class Chunk(BaseModel):
             page_content = full_content,
             metadata = source_metadata,
         )
+
+def fetch_document():
+
+    documents = []
+
+    for folder in KNOWLEDGE_BASE_PATH.iterdir():
+        doc_type = folder.name
+        for file in folder.rglob('*.md'):
+            with open(file, 'r', encoding='utf-8') as f:
+                documents.append({'type': doc_type, 'source': file.as_posix(), 'text': f.read()})
+
+    print(f'Found {len(documents)} documents')
+    return documents
