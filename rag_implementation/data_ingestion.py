@@ -226,4 +226,7 @@ def create_embeddings(chunks):
     print(f'Vectors each have Dimension of {vector_dimension}!')
 
 if __name__ == '__main__':
-    pass
+    documents = fetch_documents()
+    chunks = create_chunks(documents)
+    create_embeddings(chunks)
+    print('Data Ingestion Completed!')
