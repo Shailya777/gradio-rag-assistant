@@ -181,7 +181,7 @@ def create_chunks(documents):
         results = process_document(doc)
 
         if results: # Only Extend if the Document didn't completely fail
-            chunks.append(results)
+            chunks.extend(results)
 
     return chunks
 
