@@ -52,3 +52,21 @@ class Result(BaseModel):
     """
     page_count: str
     metadata: dict
+
+
+class RankOrder(BaseModel):
+    """
+    Schema for enforcing structured JSON output during the LLM reranking phase.
+
+    When we ask the frontier model (OpenAI) to evaluate and sort the retrieved
+    chunks by relevance, we use this Pydantic model to guarantee the LLM returns
+    a clean list of integers. This prevents the pipeline from crashing due to
+    unexpected conversational text in the response.
+
+    Attributes:
+        order (list[int]): A list of 1-based indices representing the optimal
+                           relevance order (most relevant chunk ID first, the least relevant last).
+    """
+    order: list[int] = Field(
+        description='The order of relevance of chunks, from most relevant to least relevant, by chunk id number'
+    )
