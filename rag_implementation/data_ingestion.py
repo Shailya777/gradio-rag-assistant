@@ -231,7 +231,7 @@ def create_embeddings(chunks):
     metas = [chunk.metadata for chunk in chunks]
 
     collection.add(ids= ids, embeddings= vectors, documents= texts, metadatas= metas)
-    print(f'VectorStore Created with {collection.count()} Documents!')
+    print(f'VectorStore Created with {collection.count()} Chunks!')
 
     # Code block just to get dimensions of vectors:
     sample = collection.get(limit=1, include= ['embeddings'])
