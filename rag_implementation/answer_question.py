@@ -96,7 +96,7 @@ def rewrite_query(question, history= []):
     IMPORTANT: Respond ONLY with the precise query, nothing else. No conversational text.
     """
     response = completion(model= MODEL,
-                          message= [{'role': 'system', 'content': query_rewrite_sys_prompt}])
+                          messages= [{'role': 'system', 'content': query_rewrite_sys_prompt}])
     return response.choices[0].message.content
 
 def fetch_context_unranked(question):
@@ -196,7 +196,12 @@ def merge_chunks(chunks1, chunks2):
 
     return merged
 
+
 if __name__ == '__main__':
-    chunks= fetch_context_unranked('What are parameters in ChatInterface?')
-    re, order = rerank_chunks(question= 'What are parameters in ChatInterface?', chunks= chunks)
-    print(order)
+    chunks1= fetch_context_unranked('What are the main parameters in ChatInterface?')
+    re_q = rewrite_query('What are the main parameters in ChatInterface?')
+    chunks2 = fetch_context_unranked(re_q)
+    chunks = merge_chunks(chunks1, chunks2)
+    re, order = rerank_chunks(question= 'What are the main parameters in ChatInterface?',chunks= chunks)
+    print(re_q)
+
