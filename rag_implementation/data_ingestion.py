@@ -169,6 +169,23 @@ def process_document(document):
 
     return final_results
 
+def create_chunks(documents):
+    """
+    Create chunks sequentially to protect local GPU VRAM.
+    We use tqdm to have a progress bar!
+    """
+
+    chunks= []
+
+    # Looping through documents one by one:
+    for doc in tqdm(documents, desc= 'Processing Documents and Creating Chunks'):
+        results = process_document(doc)
+
+        if results: # Only Extend if the Document didn't completely fail
+            chunks.append(results)
+
+    return chunks
+
 if __name__ == '__main__':
     print('Fetching documents...')
     documents = fetch_document()
