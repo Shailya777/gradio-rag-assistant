@@ -162,7 +162,20 @@ def process_document(document):
             continue # Skipping the Chunk
 
         # 7. Merging The LLM Chunk with Original Text:
-        result = llm_chunk.as_result(original_text= split.page_content, source_metadata= split.metadata)
+
+        # Combine the original document tracking info with the LangChain headers
+        combined_metadata = {
+            'source': document['source'],
+            'type': document['type']
+        }
+        # Add whatever headers LangChain found (even if it found none)
+        combined_metadata.update(split.metadata)
+
+        # Pass the newly combined metadata into your result
+        result = llm_chunk.as_result(
+            original_text=split.page_content,
+            source_metadata=combined_metadata
+        )
 
         final_results.append(result)
 
