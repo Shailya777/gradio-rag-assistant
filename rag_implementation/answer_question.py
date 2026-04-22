@@ -170,7 +170,7 @@ def rerank_chunks(question, chunks):
     response = completion(model= MODEL, messages= messages, response_format= RankOrder)
     reply = response.choices[0].message.content
     order = RankOrder.model_validate_json(reply).order
-    return [chunks[i-1] for i in order], order
+    return [chunks[i-1] for i in order]
 
 def merge_chunks(chunks1, chunks2):
     """
@@ -257,8 +257,33 @@ def make_messages(question, history, chunks):
         [{'role': 'user', 'content': question}]
     )
 
-if __name__ == '__main__':
-    chunks1= fetch_context('What are the main parameters in ChatInterface?')
-    print(len(chunks1))
-    print(chunks1)
+def answer_question(question, history):
+    """
+    The main execution runtime for generating a RAG-assisted answer.
 
+    This function acts as the primary entry point for the backend system. It orchestrates
+    the retrieval of highly relevant documentation, compiles the prompt payload with
+    historical context, and executes the final generation call to the frontier model.
+
+    :param: question (str): The raw question provided by the user.
+    :param: history (list[dict]): The conversational history of the current chat session.
+    :return: tuple: A tuple containing:
+            - str: The final, generated text answer from the LLM.
+            - list[Result]: The top K chunks used as context, which can be passed
+                            to the frontend UI for source citation.
+    """
+    # Getting Context from Vector Store:
+    chunks= fetch_context(question)
+
+    # Making Messages payload for LLM:
+    messages = make_messages(question, history, chunks)
+
+    # Response from LLM:
+    response = completion(model= MODEL, messages= messages)
+
+    return response.choices[0].message.content, chunks
+
+if __name__ == '__main__':
+    reply, chunks = answer_question('What are the main parameters for ChatInterface?', [])
+    print(reply)
+    print(chunks)
