@@ -172,6 +172,29 @@ def rerank_chunks(question, chunks):
     order = RankOrder.model_validate_json(reply).order
     return [chunks[i-1] for i in order], order
 
+def merge_chunks(chunks1, chunks2):
+    """
+    Merges two lists of retrieved database chunks while removing any exact duplicates.
+
+    When querying the vector database with both the original user prompt and
+    the optimized rewritten query, overlapping results are highly likely. This
+    function acts as a deduplication filter, combining the lists while ensuring
+    no redundant text is sent to the LLM context window.
+
+    :param: chunks1 (list[Result]): The first list of retrieved Result objects.
+    :param: chunks2 (list[Result]): The second list of retrieved Result objects to be merged.
+
+    :return: list[Result]: A unified, deduplicated list of unique chunks.
+    """
+    merged= chunks1[:]
+
+    existing= [chunk.page_content for chunk in chunks1]
+
+    for chunk in chunks2:
+        if chunk.page_content not in existing:
+            merged.append(chunk)
+
+    return merged
 
 if __name__ == '__main__':
     chunks= fetch_context_unranked('What are parameters in ChatInterface?')
