@@ -50,7 +50,7 @@ class Result(BaseModel):
         metadata (dict): Contextual tags associated with the chunk, such as the source
                          file path and the Markdown header hierarchy.
     """
-    page_count: str
+    page_content: str
     metadata: dict
 
 
@@ -98,3 +98,35 @@ def rewrite_query(question, history= []):
     response = completion(model= MODEL,
                           message= [{'role': 'system', 'content': query_rewrite_sys_prompt}])
     return response.choices[0].message.content
+
+def fetch_context_unranked(question):
+    """
+    Retrieves the most semantically relevant chunks from the vector database for a given question.
+
+    This function converts the input question into an embedding vector using OpenAI,
+    queries the local ChromaDB collection for the closest mathematical matches, and
+    packages the raw database output into a list of structured Result objects.
+
+    :param:
+        question (str): The search query (either the raw user input or the rewritten query).
+
+    :return:
+        list[Result]: A list of Result objects containing the page_content and metadata
+                      for the top K most relevant chunks.
+    """
+    # Turning question into Embedding Vector:
+    query = openai.embeddings.create(model= embedding_model, input= [question]).data[0].embedding
+
+    # Using Embedding Vector of Question to Search into Vector Store:
+    results = collection.query(query_embeddings= [query], n_results= RETRIEVAL_K)
+
+    # Appending results from vector store to a list of Result Objects
+    chunks= []
+    for result in zip(results['documents'][0], results['metadatas'][0]):
+        chunks.append(Result(page_content= result[0], metadata= result[1]))
+
+    return chunks
+
+if __name__ == '__main__':
+    temp = fetch_context_unranked('How to use ChatInterface?')
+    print(temp)
