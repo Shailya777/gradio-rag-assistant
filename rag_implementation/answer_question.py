@@ -70,3 +70,31 @@ class RankOrder(BaseModel):
     order: list[int] = Field(
         description='The order of relevance of chunks, from most relevant to least relevant, by chunk id number'
     )
+
+def rewrite_query(question, history= []):
+    """
+    Rewrite the user's question to be a more specific question that is more
+    likely to surface relevant content in the Knowledge Base.
+
+    :param question: User's Current question to be rewritten.
+    :param history: History of conversation.
+    :return: LLM's Rewritten question.
+    """
+
+    query_rewrite_sys_prompt = f"""
+    You are in a conversation with a user, answering questions about the company Insurellm.
+    You are about to look up information in a Knowledge Base to answer the user's question.
+
+    This is the history of your conversation so far with the user:
+    {history}
+
+    And this is the user's current question:
+    {question}
+
+    Respond only with a short, refined question that you will use to search the Knowledge Base.
+    It should be a VERY short specific question most likely to surface content. Focus on the question details.
+    IMPORTANT: Respond ONLY with the precise knowledgebase query, nothing else.
+    """
+    response = completion(model= MODEL,
+                          message= [{'role': 'system', 'content': query_rewrite_sys_prompt}])
+    return response.choices[0].message.content
