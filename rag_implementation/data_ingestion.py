@@ -21,6 +21,7 @@ embedding_model = 'text-embedding-3-large'
 KNOWLEDGE_BASE_PATH = Path(__file__).parent.parent / 'Knowledge-Base'
 wait = wait_exponential(multiplier= 1, min= 10, max= 240)
 ollama = OpenAI(base_url= os.getenv("OLLAMA_BASE_URL"), api_key= '')
+openai = OpenAI()
 
 class Result(BaseModel):
     """
@@ -70,7 +71,7 @@ class Chunk(BaseModel):
             metadata = source_metadata,
         )
 
-def fetch_document():
+def fetch_documents():
 
     documents = []
 
@@ -96,9 +97,7 @@ def process_document(document):
     headers_to_split_on = [
         ('#', 'Header 1'),
         ('##', 'Header 2'),
-        ('###', 'Header 3'),
-        ('####', 'Header 4'),
-        ('#####', 'Header 5'),
+        ('###', 'Header 3')
     ]
 
     markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on= headers_to_split_on)
@@ -186,32 +185,45 @@ def create_chunks(documents):
 
     return chunks
 
+
+def create_embeddings(chunks):
+    """
+    Generates semantic embeddings for processed text chunks and stores them in a local vector database.
+
+    This function connects to a persistent ChromaDB instance, clears any existing data
+    in the target collection to prevent duplicates, and calls the OpenAI Embeddings API
+    to vectorize the text. Finally, it stores the vectors, raw text, metadata, and
+    unique IDs into the database for future retrieval.
+
+    :param:
+        chunks (list[Result]): A list of processed Result Pydantic objects containing
+                               the text ('page_content') and contextual tags ('metadata').
+
+    Returns:
+        None. The function saves the data directly to the local disk.
+    """
+    # Vector DataBase Instance:
+    chroma = PersistentClient(path= DB_NAME)
+
+    # Checking if Database Already Exists, wiping clean if it does:
+    if collection_name in [c.name for c in chroma.list_collections()]:
+        chroma.delete_collection(collection_name)
+
+    texts = [chunk.page_content for chunk in chunks]
+    emb = openai.embeddings.create(model= embedding_model, input= texts).data
+    vectors = [e.embedding for e in emb]
+
+    collection = chroma.get_or_create_collection(collection_name)
+    ids = [str(i) for i in range(len(chunks))]
+    metas = [chunk.metadata for chunk in chunks]
+
+    collection.add(ids= ids, embeddings= vectors, documents= texts, metadatas= metas)
+    print(f'VectorStore Created with {collection.count()} Documents!')
+
+    # Code block just to get dimensions of vectors:
+    sample = collection.get(limit=1, include= ['embeddings'])
+    vector_dimension = len(sample['embeddings'][0])
+    print(f'Vectors each have Dimension of {vector_dimension}!')
+
 if __name__ == '__main__':
-    print('Fetching documents...')
-    documents = fetch_document()
-
-    if not documents:
-        print('No documents found.')
-    else:
-        test_doc = documents[0]
-        print(f"Testing with document: {test_doc['source']}")
-
-        try:
-            results = process_document(test_doc)
-            print(f'\nSuccess! Generated {len(results)} chunks from this document.')
-            if results:
-                print("\n" + "=" * 50)
-                print("🔍 INSPECTING THE FIRST CHUNK:")
-                print("=" * 50)
-
-                first_result = results[0]
-                print(f"\n📍 METADATA (Notice the LangChain headers!):")
-                print(first_result.metadata)
-
-                print(f"\n📝 PAGE CONTENT (Headline -> Summary -> Original Text):")
-                print("-" * 40)
-                print(first_result.page_content)
-                print("-" * 40)
-
-        except Exception as e:
-            print(f"\n❌ Pipeline failed during testing: {e}")
+    pass
