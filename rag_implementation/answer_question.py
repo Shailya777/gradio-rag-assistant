@@ -229,6 +229,33 @@ def fetch_context(original_question):
 
     return reranked_chunks[:FINAL_K]
 
+def make_messages(question, history, chunks):
+    """
+    Compiles the retrieved chunks, conversation history, and system instructions into the final LLM payload.
+
+    This function acts as the prompt formatter. It extracts the raw text and source
+    paths from the top-ranked chunks, injects them into the master system prompt,
+    and concatenates the conversation history with the user's current question to
+    create a stateful, context-aware message array.
+
+    :param: question (str): The user's original question.
+    :param: history (list[dict]): The previous conversation turns, formatted as OpenAI message dictionaries.
+    :param: chunks (list[Result]): The final, curated list of top-ranked Result objects.
+    :return: list[dict]: A complete message array ready to be sent to the completion API.
+    """
+    # Joining content from all the chunks into single context string:
+    context = '\n\n'.join(
+        f"Extract from {chunk.metadata['source']}:\n{chunk.page_content}" for chunk in chunks
+    )
+
+    # System Prompt:
+    system_prompt= SYSTEM_PROMPT.format(context= context)
+
+    return (
+        [{'role': 'system', 'content': system_prompt}] +
+        history +
+        [{'role': 'user', 'content': question}]
+    )
 
 if __name__ == '__main__':
     chunks1= fetch_context('What are the main parameters in ChatInterface?')
