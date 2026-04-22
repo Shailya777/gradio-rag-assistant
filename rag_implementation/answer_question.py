@@ -26,12 +26,29 @@ RETRIEVAL_K= 20
 FINAL_K= 10
 
 SYSTEM_PROMPT = """
-You are a knowledgeable, friendly, and expert Python developer assistant specializing in the Gradio UI library.
-You are chatting with a user who is building or debugging Gradio applications.
+You are a knowledgeable, friendly, and expert Python developer assistant specializing in the gradio UI library.
+You are chatting with a user who is building or debugging gradio applications.
 Your answer will be evaluated for accuracy, relevance, and completeness, so make sure it only answers the question and fully answers it.
 If you don't know the answer or the retrieved context does not contain the answer, say so explicitly. DO NOT hallucinate Python code.
-For context, here are specific extracts from the official Gradio Knowledge Base that are directly relevant to the user's question:
+For context, here are specific extracts from the official gradio Knowledge Base that are directly relevant to the user's question:
 {context}
 
 With this context, please answer the user's question. Be accurate, relevant, complete, and provide clean Python code examples if applicable.
 """
+
+class Result(BaseModel):
+    """
+    Represents a single chunk of retrieved context from the vector database.
+
+    This class standardizes the format of documents fetched from ChromaDB,
+    making it easy to pass the raw text and its associated tags into the
+    reranking and final generation phases.
+
+    Attributes:
+        page_content (str): The actual text content of the chunk (including the
+                            LLM-generated headline, summary, and raw gradio Markdown).
+        metadata (dict): Contextual tags associated with the chunk, such as the source
+                         file path and the Markdown header hierarchy.
+    """
+    page_count: str
+    metadata: dict
