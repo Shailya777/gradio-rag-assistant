@@ -127,6 +127,53 @@ def fetch_context_unranked(question):
 
     return chunks
 
+
+def rerank_chunks(question, chunks):
+    """
+    Evaluates and sorts retrieved database chunks by true semantic relevance to the user's question.
+
+    Vector similarity search can sometimes surface tangentially related chunks.
+    This function acts as a precision filter, passing the retrieved chunks to a
+    frontier LLM to evaluate their actual utility in answering the specific question.
+    The LLM returns an ordered list of IDs, which is used to re-sort the chunks
+    from most to least relevant.
+
+    :param: question (str): The user's original question.
+    :param: chunks (list[Result]): The deduplicated list of chunks retrieved from ChromaDB.
+
+    :return: list[Result]: The newly sorted list of Result objects, optimized for final context injection.
+    """
+
+    rerank_chunks_sys_prompt= """
+    You are a document re-ranker.
+    You are provided with a question and a list of relevant chunks of text from a query of a knowledge base.
+    The chunks are provided in the order they were retrieved; this should be approximately ordered by relevance, but you may be able to improve on that.
+    You must rank order the provided chunks by relevance to the question, with the most relevant chunk first.
+    Reply only with the list of ranked chunk ids, nothing else. Include all the chunk ids you are provided with, reranked.
+    """
+
+    rerank_chunks_user_prompt= f'''
+    The user has asked the following question:\n\n{question}\n\nOrder all the chunks of text by relevance to the question,
+     from most relevant to least relevant. Include all the chunk ids you are provided with, reranked.\n\n
+     '''
+    rerank_chunks_user_prompt += "Here are the Chunks:\n\n"
+
+    for index, chunk in enumerate(chunks):
+        rerank_chunks_user_prompt += f"# CHUNK ID: {index + 1}:\n\n{chunk.page_content}\n\n"
+
+    rerank_chunks_user_prompt += "Reply only with the list of ranked chunk ids, nothing else."
+
+    messages= [{'role': 'system', 'content': rerank_chunks_sys_prompt},
+               {'role': 'user', 'content': rerank_chunks_user_prompt}
+               ]
+
+    response = completion(model= MODEL, messages= messages, response_format= RankOrder)
+    reply = response.choices[0].message.content
+    order = RankOrder.model_validate_json(reply).order
+    return [chunks[i-1] for i in order], order
+
+
 if __name__ == '__main__':
-    temp = fetch_context_unranked('How to use ChatInterface?')
-    print(temp)
+    chunks= fetch_context_unranked('What are parameters in ChatInterface?')
+    re, order = rerank_chunks(question= 'What are parameters in ChatInterface?', chunks= chunks)
+    print(order)
