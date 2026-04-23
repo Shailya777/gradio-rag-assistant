@@ -53,6 +53,51 @@ def get_random_markdown_chunks(num_chunks):
 
     return chunks
 
+def generate_tests():
+    """
+    Feeds chunks to the LLM to generate synthetic test questions.
+    """
+    print(f'Sampling {NUM_TESTS_TO_GENERATE} documents to generate tests...')
+    chunks= get_random_markdown_chunks(NUM_TESTS_TO_GENERATE)
+
+    generated_tests = []
+
+    for i, chunk in enumerate(chunks):
+        print(f'Generating question {i + 1}/{NUM_TESTS_TO_GENERATE}...')
+
+        system_prompt = """
+        You are an expert QA engineer creating a test dataset for a Python gradio RAG system.
+        I will give you a chunk of gradio documentation. 
+        Your job is to read it, and generate ONE difficult, highly specific test question that can be answered by this text.
+        Respond ONLY in valid JSON matching the provided schema.
+        """
+
+        user_prompt = f"DOCUMENTATION CHUNK: \n\n{chunk}"
+
+        try:
+            response = completion(
+                model= MODEL,
+                messages= [
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': user_prompt}
+                    ],
+                response_format= TestItem
+            )
+
+            # Parsing the json Response:
+            reply = response.choices[0].message.content
+            test_data = TestItem.model_validate_json(reply)
+            generated_tests.append(test_data.model_dump())
+
+        except Exception as e:
+            print(f'Skipping Chunk due to Error: {e}')
+
+    # Saving Generated Tests to JSONL (JSON Lines) file:
+    with open(TEST_FILE_PATH, 'w', encoding="utf-8") as f:
+        for test in generated_tests:
+            f.write(json.dumps(test) + '\n')
+
+    print(f'\nSuccessfully Generated {len(generated_tests)} Tests and saved to {TEST_FILE_PATH.name}\n')
+
 if __name__ == '__main__':
-    x = get_random_markdown_chunks(2)
-    print(x)
+    generate_tests()
