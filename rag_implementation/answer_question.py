@@ -170,7 +170,8 @@ def rerank_chunks(question, chunks):
     response = completion(model= MODEL, messages= messages, response_format= RankOrder)
     reply = response.choices[0].message.content
     order = RankOrder.model_validate_json(reply).order
-    return [chunks[i-1] for i in order]
+    #return [chunks[i-1] for i in order]
+    return [chunks[i - 1] for i in order if 0 < i <= len(chunks)]
 
 def merge_chunks(chunks1, chunks2):
     """
