@@ -33,3 +33,19 @@ class AnswerEval(BaseModel):
     feedback: int = Field(
         description= '1 sentence explaining the scores.'
     )
+
+def evaluate_pipeline():
+    """
+
+    :return:
+    """
+
+    # Loading the Tests Dataset:
+    tests= []
+    with open(TEST_FILE, 'r', encoding= 'utf-8') as f:
+        for line in f:
+            tests.append(json.loads(line))
+    print(f'Loaded {len(tests)} test cases.')
+
+if __name__ == '__main__':
+    evaluate_pipeline()
