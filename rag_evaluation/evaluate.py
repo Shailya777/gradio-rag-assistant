@@ -11,7 +11,7 @@ from rag_implementation.answer_question import answer_question
 
 # Constants:
 load_dotenv(override= True)
-JUDGE_MODEL = 'openai/gpt-4.1-nano'
+JUDGE_MODEL = 'openai/gpt-4o'
 TEST_FILE = Path(__file__).parent / 'tests.jsonl'
 RESULTS_FILE = Path(__file__).parent / 'evaluation_results.csv'
 
