@@ -47,5 +47,33 @@ def evaluate_pipeline():
             tests.append(json.loads(line))
     print(f'Loaded {len(tests)} test cases.')
 
+# Main Evaluation Loop:
+    results_log = []
+
+    for test in tqdm(tests, desc= 'Evaluating RAG Pipeline'):
+        question = test['question']
+        expected_keywords = test['keywords']
+        reference_answer = test['reference_answer']
+        category = test['category']
+
+        # Running the Pipeline:
+        try:
+            # generating Answer from LLM for Test Question:
+            generated_answer, retrieved_chunks= answer_question(question, history= [])
+        except Exception as e:
+            tqdm.write(f'Pipeline Crashed on Question- {question}: Error- {e}')
+            continue
+
+        # Keyword Coverage:
+        ## Combining all Retrieved Chunks in one String for Easy Search:
+        all_retrieved_text = ' '.join([chunk.page_content.lower() for chunk in retrieved_chunks])
+
+        keywords_found = 0
+        for keyword in expected_keywords:
+            if keyword.lower() in all_retrieved_text:
+                keywords_found += 1
+
+        keyword_coverage_pct = (keywords_found / len(expected_keywords)) * 100 if expected_keywords else 0
+
 if __name__ == '__main__':
     evaluate_pipeline()
