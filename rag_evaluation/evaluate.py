@@ -75,5 +75,22 @@ def evaluate_pipeline():
 
         keyword_coverage_pct = (keywords_found / len(expected_keywords)) * 100 if expected_keywords else 0
 
+        # Answer Grading:
+        judge_llm_system_prompt= '''
+        You are an impartial, expert AI grader evaluating a RAG pipeline.
+        Compare the Generated Answer to the Reference Answer. 
+        Grade strictly on a scale of 1 to 5. 
+        Respond ONLY in the requested JSON format.
+        '''
+
+        judge_llm_user_prompt= f'''
+        User Question: {question}
+        
+        Perfect Reference Answer: {reference_answer}
+        
+        Generated Answer: {generated_answer}
+        '''
+
+
 if __name__ == '__main__':
     evaluate_pipeline()
