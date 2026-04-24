@@ -31,7 +31,7 @@ class AnswerEval(BaseModel):
         description= 'Score 1-5: Did it directly answer the prompt without rambling?'
     )
 
-    feedback: int = Field(
+    feedback: str = Field(
         description= '1 sentence explaining the scores.'
     )
 
@@ -93,9 +93,9 @@ def evaluate_pipeline():
         '''
 
         try:
-            judge_llm_response = completion.completion(
+            judge_llm_response = completion(
                 model= JUDGE_MODEL,
-                message= [
+                messages= [
                     {'role': 'system', 'content': judge_llm_system_prompt},
                     {'role': 'user', 'content': judge_llm_user_prompt},
                 ],
@@ -122,6 +122,10 @@ def evaluate_pipeline():
 
     # Saving Evaluation Results to Dataframe:
     df = pd.DataFrame(results_log)
+
+    # Writing Evaluation data to CSV File, deleting the file if already exists:
+    if RESULTS_FILE.exists():
+        RESULTS_FILE.unlink()
     df.to_csv(RESULTS_FILE, index= False)
 
     # Evaluation Data:
