@@ -91,6 +91,33 @@ def evaluate_pipeline():
         Generated Answer: {generated_answer}
         '''
 
+        try:
+            judge_llm_response = completion.completion(
+                model= JUDGE_MODEL,
+                message= [
+                    {'role': 'system', 'content': judge_llm_system_prompt},
+                    {'role': 'user', 'content': judge_llm_user_prompt},
+                ],
+                response_format= AnswerEval,
+            )
+
+            # Parsing the Response to check if it is in requested format:
+            eval_data= AnswerEval.model_validate_json(judge_llm_response.choices[0].message.content)
+
+            # Logging the Results:
+            results_log.append({
+                'Category': category,
+                'Question': question,
+                'Keyword_Coverage_%': keyword_coverage_pct,
+                'Accuracy_Score': eval_data.accuracy,
+                'Completeness_Score': eval_data.completeness,
+                'Relevance_Score': eval_data.relevance,
+                'Judge_Feedback': eval_data.feedback,
+            })
+
+        except Exception as e:
+            tqdm.write(f'Judge Failed on Question- {question}: Error- {e}')
+            continue
 
 if __name__ == '__main__':
     evaluate_pipeline()
