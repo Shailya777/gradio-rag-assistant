@@ -6,13 +6,14 @@ from pathlib import Path
 from litellm import completion
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 # Constants:
 load_dotenv(override= True)
-MODEL= 'ollama/llama3.1:8b'
+MODEL= 'openai/gpt-4.1-mini'
 KNOWLEDGE_BASE_PATH = Path(__file__).parent.parent / 'knowledge-base'
 TEST_FILE_PATH= Path(__file__).parent / 'tests.jsonl'
-NUM_TESTS_TO_GENERATE = 25
+NUM_TESTS_TO_GENERATE = 50
 
 class TestItem(BaseModel):
     """
@@ -62,8 +63,7 @@ def generate_tests():
 
     generated_tests = []
 
-    for i, chunk in enumerate(chunks):
-        print(f'Generating question {i + 1}/{NUM_TESTS_TO_GENERATE}...')
+    for chunk in tqdm(chunks, desc= 'Generating synthetic tests'):
 
         system_prompt = """
         You are an expert QA engineer creating a test dataset for a Python gradio RAG system.
@@ -90,12 +90,19 @@ def generate_tests():
             generated_tests.append(test_data.model_dump())
 
         except Exception as e:
-            print(f'Skipping Chunk due to Error: {e}')
+            tqdm.write(f"Skipping chunk due to error: {e}") # tqdm handles print statements cleanly without breaking the bar if you use tqdm.write()
+            continue
+
+    # Check if the file exists, and delete it if it does
+    if TEST_FILE_PATH.exists():
+        TEST_FILE_PATH.unlink()
+        print(f'Cleaned up existing test file {TEST_FILE_PATH.name}')
 
     # Saving Generated Tests to JSONL (JSON Lines) file:
     with open(TEST_FILE_PATH, 'w', encoding="utf-8") as f:
         for test in generated_tests:
             f.write(json.dumps(test) + '\n')
+
 
     print(f'\nSuccessfully Generated {len(generated_tests)} Tests and saved to {TEST_FILE_PATH.name}\n')
 
