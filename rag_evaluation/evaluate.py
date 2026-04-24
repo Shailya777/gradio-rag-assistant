@@ -1,6 +1,7 @@
 # Imports:
 import os
 import json
+import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 from pydantic import BaseModel, Field
@@ -118,6 +119,20 @@ def evaluate_pipeline():
         except Exception as e:
             tqdm.write(f'Judge Failed on Question- {question}: Error- {e}')
             continue
+
+    # Saving Evaluation Results to Dataframe:
+    df = pd.DataFrame(results_log)
+    df.to_csv(RESULTS_FILE, index= False)
+
+    # Evaluation Data:
+    print("\n" + "=" * 50)
+    print("📊 EVALUATION COMPLETE 📊")
+    print("=" * 50)
+    print(f"Average Keyword Coverage: {df['Keyword_Coverage_%'].mean():.1f}%")
+    print(f"Average Accuracy:         {df['Accuracy_Score'].mean():.2f} / 5.0")
+    print(f"Average Completeness:     {df['Completeness_Score'].mean():.2f} / 5.0")
+    print(f"Average Relevance:        {df['Relevance_Score'].mean():.2f} / 5.0")
+    print(f"\nDetailed results saved to {RESULTS_FILE.name}")
 
 if __name__ == '__main__':
     evaluate_pipeline()
