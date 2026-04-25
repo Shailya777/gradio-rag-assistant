@@ -24,8 +24,32 @@ def load_metrics():
     avg_completeness = df['Completeness_Score'].mean()
     avg_relevance = df['Relevance_Score'].mean()
 
-    return avg_coverage, avg_mrr, avg_ndcg, avg_accuracy, avg_completeness, avg_relevance
+    return df, avg_coverage, avg_mrr, avg_ndcg, avg_accuracy, avg_completeness, avg_relevance
+
+# Gradio UI:
+
+with gr.Blocks() as demo:
+    gr.Markdown('# 📊 RAG Architecture Evaluation Dashboard')
+    gr.Markdown('Interactive Visualization of the Advanced Retrieval and Generative Metrics')
+
+    # Loading Metrics:
+    df, cov, mrr, ndcg, acc, comp, rel = load_metrics()
+
+    gr.Markdown('### 🔍 Retrieval Performance (Vector Database)')
+    with gr.Row():
+        gr.Number(value= cov, label= "Keyword Coverage (%)", precision= 1, interactive= False)
+        gr.Number(value= mrr, label= "Mean Reciprocal Rank (MRR)", precision= 4, interactive= False)
+        gr.Number(value= ndcg, label= "Normalized DCG (nDCG)", precision= 4, interactive= False)
+
+    gr.Markdown('### 🧠 Generation Quality (LLM-as-a-Judge)')
+    with gr.Row():
+        gr.Number(value= acc, label= "Accuracy (out of 5)", precision= 2, interactive= False)
+        gr.Number(value= comp, label= "Completeness (out of 5)", precision= 2, interactive= False)
+        gr.Number(value= rel, label= "Relevance (out of 5)", precision= 2, interactive= False)
+
+    gr.Markdown('### 📝 Detailed Evaluation Logs')
+    gr.DataFrame(value= df, interactive= False)
+
 
 if __name__ == '__main__':
-    a,s,d,f,g,h= load_metrics()
-    print(a,s,d,f,g,h)
+    demo.launch(inbrowser= True)
