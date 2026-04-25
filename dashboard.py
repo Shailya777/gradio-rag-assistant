@@ -44,8 +44,21 @@ def load_dashboard_data():
     comp_html = create_stat_card(title= 'Completeness', value= df['Completeness_Score'].mean(), suffix= ' / 5', color= '#f97316')
     rel_html = create_stat_card(title= 'Relevance', value= df['Relevance_Score'].mean(), suffix= ' / 5', color= '#ef4444')
 
+    # Category wise Bar Chart:
+    category_df = df.groupby('Category').mean(numeric_only= True).reset_index()
 
+    # Melting the Dataframe:
+    chart_df = category_df.melt(
+        id_vars= 'Category',
+        value_vars= ['Accuracy_Score', 'Completeness_Score', 'Relevance_Score'],
+        var_name= 'Metric',
+        value_name= 'Score'
+    )
 
+    # Cleaning up Metric Names:
+    chart_df['Metric'] = chart_df['Metric'].str.replace('_Score', '')
+
+    return cov_html, mrr_html, ndcg_html, acc_html, comp_html, rel_html, chart_df, df
 
 # Gradio UI:
 
