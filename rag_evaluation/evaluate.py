@@ -1,5 +1,6 @@
 # Imports:
 import os
+import math
 import json
 import pandas as pd
 from pathlib import Path
@@ -34,6 +35,27 @@ class AnswerEval(BaseModel):
     feedback: str = Field(
         description= '1 sentence explaining the scores.'
     )
+
+def calculate_mrr(keywords, retrieved_chunks):
+    """
+    Calculates Mean Reciprocal Rank (how high up was the first good result?)
+    :param keywords: Keywords to search for
+    :param retrieved_chunks: Retrieved Chunks
+    :return: MRR Score
+    """
+
+    mrr_scores= []
+
+    for keyword in keywords:
+
+        for rank, chunk in enumerate(retrieved_chunks, start= 1):
+            if keyword.lower() in chunk.page_content.lower():
+                mrr_scores.append(1.0 / rank)
+                break # Keyword Found! Move to the next keyword.
+        else:
+            mrr_scores.append(0.0) # Keyword wasn't in any chunk
+
+    return sum(mrr_scores) / len(mrr_scores) if mrr_scores else 0.0
 
 def evaluate_pipeline():
     """
