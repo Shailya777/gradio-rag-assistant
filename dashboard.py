@@ -64,25 +64,38 @@ def load_dashboard_data():
 
 with gr.Blocks() as demo:
     gr.Markdown('# 📊 RAG Architecture Evaluation Dashboard')
-    gr.Markdown('Interactive Visualization of the Advanced Retrieval and Generative Metrics')
+    gr.Markdown('Interactive visualization of the advanced retrieval and generation metrics.')
 
-    # Loading Metrics:
-    df, cov, mrr, ndcg, acc, comp, rel = load_metrics()
+    # Loading The Data:
+    cov, mrr, ndcg, acc, comp, rel, chart_data, df = load_dashboard_data()
 
     gr.Markdown('### 🔍 Retrieval Performance (Vector Database)')
     with gr.Row():
-        gr.Number(value=cov, label="Keyword Coverage (%)", precision=1, interactive=False)
-        gr.Number(value=mrr, label="Mean Reciprocal Rank (MRR)", precision=4, interactive=False)
-        gr.Number(value=ndcg, label="Normalized DCG (nDCG)", precision=4, interactive=False)
+        gr.HTML(cov)
+        gr.HTML(mrr)
+        gr.HTML(ndcg)
 
     gr.Markdown('### 🧠 Generation Quality (LLM-as-a-Judge)')
     with gr.Row():
-        gr.Number(value=acc, label="Accuracy (out of 5)", precision=2, interactive=False)
-        gr.Number(value=comp, label="Completeness (out of 5)", precision=2, interactive=False)
-        gr.Number(value=rel, label="Relevance (out of 5)", precision=2, interactive=False)
+        gr.HTML(acc)
+        gr.HTML(comp)
+        gr.HTML(rel)
+
+    gr.Markdown('### 📈 Performance by Category')
+    gr.BarPlot(
+        value= chart_data,
+        x= "Category",
+        y= "Score",
+        color= 'Metric',
+        y_title= 'Average Score (Out of 5)',
+        title= 'LLM Judge Scores across Question Categories',
+        tooltip= ['Category', 'Metric', 'Score'],
+        min_width= 1000,
+        height= 500,
+    )
 
     gr.Markdown('### 📝 Detailed Evaluation Logs')
-    gr.DataFrame(value=df, interactive=False)
+    gr.DataFrame(value= df, interactive= False)
 
 if __name__ == '__main__':
-    load_dashboard_data()
+    demo.launch(theme= gr.themes.Soft(), css= 'body {background-color: #f9fafb;}', inbrowser= True)
