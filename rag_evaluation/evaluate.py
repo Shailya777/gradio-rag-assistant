@@ -125,6 +125,12 @@ def evaluate_pipeline():
 
         keyword_coverage_pct = (keywords_found / len(expected_keywords)) * 100 if expected_keywords else 0
 
+        # Calculating MRR:
+        mrr_scores = calculate_mrr(keywords= expected_keywords, retrieved_chunks= retrieved_chunks)
+
+        # Calculating nDCG:
+        ndcg_scores = calculate_ndcg(keywords= expected_keywords, retrieved_chunks= retrieved_chunks)
+
         # Answer Grading:
         judge_llm_system_prompt= '''
         You are an impartial, expert AI grader evaluating a RAG pipeline.
@@ -162,6 +168,8 @@ def evaluate_pipeline():
                 'Accuracy_Score': eval_data.accuracy,
                 'Completeness_Score': eval_data.completeness,
                 'Relevance_Score': eval_data.relevance,
+                'Mean_Reciprocal_Rank_(MRR)': mrr_scores,
+                'Normalized_Discounted_Cumulative_Gain_(nDCG)': ndcg_scores,
                 'Judge_Feedback': eval_data.feedback,
             })
 
