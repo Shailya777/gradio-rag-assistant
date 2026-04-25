@@ -193,6 +193,8 @@ def evaluate_pipeline():
     print(f"Average Accuracy:         {df['Accuracy_Score'].mean():.2f} / 5.0")
     print(f"Average Completeness:     {df['Completeness_Score'].mean():.2f} / 5.0")
     print(f"Average Relevance:        {df['Relevance_Score'].mean():.2f} / 5.0")
+    print(f"Average MRR:              {df['MRR_Score'].mean():.4f}")
+    print(f"Average nDCG:             {df['nDCG_Score'].mean():.4f}")
     print(f"\nDetailed results saved to {RESULTS_FILE.name}")
 
 if __name__ == '__main__':
