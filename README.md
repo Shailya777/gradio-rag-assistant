@@ -1,85 +1,64 @@
-# 🤖 Gradio RAG Expert Assistant
+# 🚀 Gradio Hybrid RAG Assistant
 
-> An advanced Retrieval-Augmented Generation (RAG) assistant for Gradio documentation, featuring query rewriting, semantic chunking, and LLM-as-a-judge evaluation.
+An advanced, production-grade Retrieval-Augmented Generation (RAG) system built to query and synthesize Gradio documentation. This project features a custom ingestion pipeline, a hybrid local/cloud architecture, and a rigorous LLM-as-a-Judge evaluation framework to mathematically prove factual accuracy.
 
-This project adapts advanced RAG architectures to build a highly accurate, domain-specific AI assistant. It is designed to navigate the official Gradio documentation, intelligently chunk Python code alongside explanatory text, and provide precise answers to complex UI development questions.
+## 🧠 Architecture Overview
 
-This system is configured to support both cloud-based LLMs (OpenAI) and local inference (via Ollama) to leverage local hardware acceleration for cost-free document ingestion and synthetic evaluation.
+This assistant is built on a two-part architecture designed for accuracy, speed, and cost-efficiency:
 
-## 🗂️ Project Architecture
-1. **Data Ingestion (`ingest.py`):** Semantically chunks Markdown documentation, generating LLM-powered headlines and summaries for each chunk to improve retrieval accuracy, stored in ChromaDB.
-2. **Retrieval & Answer (`answer.py` & `app.py`):** Features query rewriting (to optimize semantic search) and re-ranking of context chunks before generating a final response via a Gradio UI.
-3. **Synthetic Evaluation (`evaluator.py`):** Utilizes an LLM-as-a-judge approach to score retrieval metrics (MRR, nDCG) and answer quality (Accuracy, Completeness, Relevance) against a generated dataset (`tests.jsonl`).
+1. **The Retrieval Pipeline (Local Vector DB)**
+   * **Knowledge Base:** Raw Markdown documentation chunks.
+   * **Enhancement:** Uses local LLMs (via Ollama) to dynamically generate headers and summaries for each chunk prior to embedding, dramatically improving semantic search recall.
+   * **Vector Store:** ChromaDB for fast, local similarity search.
 
----
+2. **The Generation Pipeline (Cloud Inference)**
+   * **Query Rewriting:** Transforms raw user queries into optimized search vectors.
+   * **Synthesis:** Uses fast, lightweight models to generate highly technical, accurate responses based strictly on retrieved context.
+   * **UI/UX:** Built natively in Gradio using `gr.ChatInterface`, featuring custom HTML accordions that allow users to transparently inspect the exact retrieved source chunks used for the answer.
 
-## 🛠️ Phase 1: Environment Setup
+## 📊 Evaluation & Metrics (LLM-as-a-Judge)
 
-This project uses Conda to manage dependencies, ensuring the smooth installation of vector database requirements (like ChromaDB) on Windows/WSL environments.
+To mathematically prove the system's reliability, I built a custom **LLM-as-a-Judge Evaluation Pipeline**. This bypasses heavy black-box frameworks (like Ragas) in favor of transparent, Python-native metric calculations.
 
-**1. Create the Conda Environment**
-```bash
-conda create -n gradio_rag_env python=3.11 -y
-```
+To strictly avoid **Self-Preference Bias**, the evaluation pipeline uses a cross-model grading architecture. The lightweight generator's answers are evaluated by a frontier reasoning model (**GPT-4o**) against a golden dataset of 50 synthetic, highly technical test cases.
 
-**2. Activate the Environment**
-```bash
-conda activate gradio_rag_env
-```
+**Key Performance Indicators:**
+* **Mean Reciprocal Rank (MRR):** `0.8184` *(Indicates the correct context is consistently retrieved in the top 1 or 2 slots).*
+* **Normalized DCG (nDCG):** `0.7976` *(Indicates highly relevant chunks are successfully ranked at the top of the context window).*
+* **Factual Accuracy:** `4.50 / 5.0`
+* **Answer Completeness:** `4.64 / 5.0`
+* **Answer Relevance:** `4.82 / 5.0`
 
-**3. Install Dependencies**
-```bash
-pip install -r requirements.txt
-```
-(Note for IDE Users: Ensure your IDE Python Interpreter is pointed to this existing Conda environment to enable proper code completion and linting.)
+> *Note: A custom Gradio analytics dashboard (`dashboard.py`) is included in this repository to interactively visualize these metrics and inspect the detailed logs.*
 
+## ⚙️ Quick Start
 
-## Phase 2: Data Acquisition
-To ensure the assistant is providing accurate, up-to-date information, the knowledge base is pulled directly from the official Gradio GitHub repository.
+### Prerequisites
+* Python 3.10+
+* An OpenAI API Key
+* [Optional] Ollama installed locally for ingestion chunk summarization
 
-**1. Clone the Gradio Repository**
-To keep the project cleanly separated, clone the Gradio repo into a directory outside of this project folder:
-```bash
-cd ..
-git clone [https://github.com/gradio-app/gradio.git](https://github.com/gradio-app/gradio.git)
-```
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/Shailya777/gradio-rag-assistant.git](https://github.com/Shailya777/gradio-rag-assistant.git)
+   cd gradio-rag-assistant
+   ```
+2. Install the required dependencies:
+    ```bash
+   pip install -r requirements.txt
+   ```
+3. Create a .env file in the root directory and add your API key:
+    ```bash
+    OPENAI_API_KEY=your_api_key_here
+    ```
 
-**2. Extract Core Documentation**
-- Navigate to the cloned repository and open the guides folder (gradio/guides/). We only want the core English .md text files for the embedding model.
-
-- Create a knowledge-base folder in the root of this project (gradio-rag-assistant/knowledge-base/).
-
-- Copy the numbered guide folders (e.g., 01_getting-started, 02_building-interfaces, through 11_other_tutorials).
-
-- Crucial Exclusion Rules:
-❌ Do not copy the assets/ folder (Contains images and CSS, which the text embedding model cannot process).
-❌ Do not copy the cn/ folder (Contains zh-CN localized translations, which will duplicate context and confuse the retriever).
-
-Paste the selected numbered folders directly into your knowledge-base directory.
-
-
-## Phase 3: Execution Sprint Plan
-
-1. Day 1: Ingestion & Embeddings
-
-- Adapt the ingest.py script to parse the extracted Gradio Markdown files.
-
-- Configure the embedding model (text-embedding-3-large or local equivalent).
-
-- Run the ingestion pipeline to populate the local preprocessed_db via ChromaDB.
-
-2. Day 2: Pipeline & Interface
-
-- Update answer.py system prompts to reflect the Gradio Assistant persona.
-
-- Validate the query rewriting and re-ranking logic against the new ChromaDB collection.
-
-- Launch the chat interface via app.py and conduct manual Q&A testing.
-
-3. Day 3: Evaluation & Refinement
-
-- Generate a tests.jsonl file containing 20-30 complex Gradio development questions, required keywords, and reference answers.
-
-- Run evaluator.py to calculate MRR, nDCG, and Answer Quality metrics.
-
-- Refine chunking size/overlap if retrieval metrics fall below the 80% threshold.
+### Running the Application
+1. Launch the Assistant Interface:
+    ```bash
+    python app.py
+    ```
+2. Launch the Evaluation Dashboard:
+    ```bash
+    python dashboard.py
+    ```
