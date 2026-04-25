@@ -57,6 +57,33 @@ def calculate_mrr(keywords, retrieved_chunks):
 
     return sum(mrr_scores) / len(mrr_scores) if mrr_scores else 0.0
 
+def calculate_ndcg(keywords, retrieved_chunks, k= 10):
+    """
+    Calculates nDCG (Normalized Discounted Cumulative Gain)(did we put the best results at the very top?)
+    :param keywords: Keywords to search for
+    :param retrieved_chunks: Retrieved Chunks
+    :param k: Number of Chunks to Search in
+    :return: nDCG Score
+    """
+
+    ndcg_scores= []
+
+    for keyword in keywords:
+
+        # Creating a list of 1s and 0s (1 if chunk has the keyword, 0 if not)
+        relevance = [1 if keyword.lower() in chunk.page_content.lower() else 0 for chunk in retrieved_chunks[:k]]
+
+        # Calculating DCG (Discounted Cumulative Gain):
+        dcg = sum(rel / math.log2(i + 2) for i, rel in enumerate(relevance))
+
+        # Calculate Ideal DCG (What if all the 1s were perfectly at the top?)
+        ideal_relevance = sorted(relevance, reverse=True)
+        icdg = sum(rel / math.log2(i + 2) for i, rel in enumerate(ideal_relevance))
+
+        ndcg_scores.append(dcg / icdg if icdg > 0 else 0.0)
+
+    return sum(ndcg_scores) / len(ndcg_scores) if ndcg_scores else 0.0
+
 def evaluate_pipeline():
     """
 
