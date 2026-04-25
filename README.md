@@ -3,6 +3,12 @@
 An advanced, production-grade Retrieval-Augmented Generation (RAG) system built to query and synthesize Gradio documentation. This project features a custom ingestion pipeline, a hybrid local/cloud architecture, and a rigorous LLM-as-a-Judge evaluation framework to mathematically prove factual accuracy.
 
 ## 🧠 Architecture Overview
+![Gradio Chat Assistant Interface](assets/chat_interface2.png)
+*The Gradio-native chat interface featuring custom source-inspection accordions.*
+
+
+![Gradio Chat Assistant Interface](assets/chat_interface3.png)
+*Answer sources listed below each answer.*
 
 This assistant is built on a two-part architecture designed for accuracy, speed, and cost-efficiency:
 
@@ -28,6 +34,9 @@ To strictly avoid **Self-Preference Bias**, the evaluation pipeline uses a cross
 * **Factual Accuracy:** `4.50 / 5.0`
 * **Answer Completeness:** `4.64 / 5.0`
 * **Answer Relevance:** `4.82 / 5.0`
+
+![RAG Evaluation Dashboard](assets/dashboard.png)
+*The interactive Gradio dashboard visualizing the custom LLM-as-a-Judge pipeline results.*
 
 > *Note: A custom Gradio analytics dashboard (`dashboard.py`) is included in this repository to interactively visualize these metrics and inspect the detailed logs.*
 
