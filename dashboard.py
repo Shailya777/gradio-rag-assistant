@@ -9,11 +9,11 @@ RESULTS_FILE = Path(__file__).parent / 'rag_evaluation/evaluation_results.csv'
 def create_stat_card(title, value, suffix= '', color= '#2563eb'):
     """
     Generates a beautiful HTML/CSS card for the metrics.
-    :param title:
-    :param value:
-    :param suffix:
-    :param color:
-    :return:
+    :param title: Title of the Metric to display.
+    :param value: Value of the Metric to display.
+    :param suffix: Suffix to display with Metric Value.
+    :param color: Color to display Metric Value in.
+    :return: None
     """
 
     return f"""
@@ -23,23 +23,20 @@ def create_stat_card(title, value, suffix= '', color= '#2563eb'):
     </div>
     """
 
-def load_metrics():
+def load_dashboard_data():
     """
-    Loads the CSV and calculates the aggregate metrics.
+    Loads the CSV, calculates aggregates, and preps the chart data.
     """
 
     if not RESULTS_FILE.exists():
-        return pd.DataFrame(), 0, 0, 0, 0, 0, 0
+        empty_card = create_stat_card('Dashboard Results', 0)
+        return empty_card, empty_card, empty_card, empty_card, empty_card, empty_card, pd.DataFrame(), pd.DataFrame()
 
     df = pd.read_csv(filepath_or_buffer= RESULTS_FILE)
 
-    # Calculating Averages:
-    avg_coverage = df['Keyword_Coverage_%'].mean()
-    avg_mrr = df['Mean_Reciprocal_Rank_(MRR)'].mean()
-    avg_ndcg = df['Normalized_Discounted_Cumulative_Gain_(nDCG)'].mean()
-    avg_accuracy = df['Accuracy_Score'].mean()
-    avg_completeness = df['Completeness_Score'].mean()
-    avg_relevance = df['Relevance_Score'].mean()
+    # Overall Metrics for HTML Cards:
+    cov_html = create_stat_card(title= 'Keyword Coverage', value= df['Keyword_Coverage_%'].mean(), suffix= '%', color= '#10b981')
+
 
     return df, avg_coverage, avg_mrr, avg_ndcg, avg_accuracy, avg_completeness, avg_relevance
 
