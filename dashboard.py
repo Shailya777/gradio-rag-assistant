@@ -35,10 +35,17 @@ def load_dashboard_data():
     df = pd.read_csv(filepath_or_buffer= RESULTS_FILE)
 
     # Overall Metrics for HTML Cards:
-    cov_html = create_stat_card(title= 'Keyword Coverage', value= df['Keyword_Coverage_%'].mean(), suffix= '%', color= '#10b981')
+    cov_html = create_stat_card(title='Keyword Coverage', value=df['Keyword_Coverage_%'].mean(), suffix='%',
+                                color= '#10b981')
+    mrr_html = create_stat_card(title= 'Avg MRR', value= df['Mean_Reciprocal_Rank_(MRR)'].mean(), suffix= '', color= '#3b82f6')
+    ndcg_html = create_stat_card(title= 'Avg nDCG', value= df['Normalized_Discounted_Cumulative_Gain_(nDCG)'].mean(), suffix= '', color= '#8b5cf6')
+
+    acc_html = create_stat_card(title= 'Accuracy', value= df['Accuracy_Score'].mean(), suffix= ' / 5', color= '#f59e0b')
+    comp_html = create_stat_card(title= 'Completeness', value= df['Completeness_Score'].mean(), suffix= ' / 5', color= '#f97316')
+    rel_html = create_stat_card(title= 'Relevance', value= df['Relevance_Score'].mean(), suffix= ' / 5', color= '#ef4444')
 
 
-    return df, avg_coverage, avg_mrr, avg_ndcg, avg_accuracy, avg_completeness, avg_relevance
+
 
 # Gradio UI:
 
@@ -51,19 +58,18 @@ with gr.Blocks() as demo:
 
     gr.Markdown('### 🔍 Retrieval Performance (Vector Database)')
     with gr.Row():
-        gr.Number(value= cov, label= "Keyword Coverage (%)", precision= 1, interactive= False)
-        gr.Number(value= mrr, label= "Mean Reciprocal Rank (MRR)", precision= 4, interactive= False)
-        gr.Number(value= ndcg, label= "Normalized DCG (nDCG)", precision= 4, interactive= False)
+        gr.Number(value=cov, label="Keyword Coverage (%)", precision=1, interactive=False)
+        gr.Number(value=mrr, label="Mean Reciprocal Rank (MRR)", precision=4, interactive=False)
+        gr.Number(value=ndcg, label="Normalized DCG (nDCG)", precision=4, interactive=False)
 
     gr.Markdown('### 🧠 Generation Quality (LLM-as-a-Judge)')
     with gr.Row():
-        gr.Number(value= acc, label= "Accuracy (out of 5)", precision= 2, interactive= False)
-        gr.Number(value= comp, label= "Completeness (out of 5)", precision= 2, interactive= False)
-        gr.Number(value= rel, label= "Relevance (out of 5)", precision= 2, interactive= False)
+        gr.Number(value=acc, label="Accuracy (out of 5)", precision=2, interactive=False)
+        gr.Number(value=comp, label="Completeness (out of 5)", precision=2, interactive=False)
+        gr.Number(value=rel, label="Relevance (out of 5)", precision=2, interactive=False)
 
     gr.Markdown('### 📝 Detailed Evaluation Logs')
-    gr.DataFrame(value= df, interactive= False)
-
+    gr.DataFrame(value=df, interactive=False)
 
 if __name__ == '__main__':
-    demo.launch(inbrowser= True)
+    load_dashboard_data()
